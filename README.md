@@ -1,31 +1,25 @@
 # Scriptsuft
 
-The official language for developing apps in all Zanop OS types, this is markup based and uses XML.
+The official language for developing apps in Zanop OS
 
 ## Sample
 
-This is a simple app when you create one (Scriptsuft is based off WML)
+This is a simple app when you create one:
 
-```xml
-<!DOCTYPE wml PUBLIC "-ZTECH//DTD/WML.dtd" "WML.dtd">
-<wml version="1.0" lang="en">
-  <PackageIdentifier>
-     <PackageDestination=
-        -folder="/main/apps/pkg.example.com" />
-     <PackageTitle=
-        -title="Example" />
-     <PackageAuthor=
-        -author="John Doe" />
-  </PackageIdentifier>
-  <head>
-     <meta charset="UTF-8" />
-     <content type="autosize" />
-  </head>
-  <body>
-    <h1>My First App!</h1>
-    <p>This is my first app with ScriptSuft!</p>
-  </body>
-</wml>
+```text
+if __app__ is on : __app__ is on;
+while __app__ is not : __app__ is not;
+app + os var #declare
+
+class var ('main'):
+  if main = __gets__ from os:
+    declare the var as("os")
+
+class var ('compile'):
+  if compile = __gets__ from main:
+    link the identifier ".identify/"
+
+compile()
 ```
 
 ## Learn The Language

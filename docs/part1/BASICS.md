@@ -1,136 +1,94 @@
-# Basics
+# Basics of Scriptsuft
 
-In this guide, you will be learning the **Basics** of Scriptsuft. You will learn the syntax of Scriptsuft such as:
+Welcome to the Basics of Scriptsuft, today, you will be learning your very first app in Scriptsuft.
 
-- `<!DOCTYPE>`
-- `<wml>`
-- `<PackageIdentifer>`
-- `<PackageDestination>`
-- `<PackageAuthor>`
+## Hello World
 
-and many more.
+To create a program in Scriptsuft, download the latest release in our website, then create a file called `main.srp`.
 
-## Explanation of Syntax
+Then type this on the file:
+```text
+!indef system
+!indef func(print)
+!indef is print
+!indef is console
 
-### Main Syntax
+speak("Hello World")
+compile()
+```
 
+**Explanation**:
 
-`<!DOCTYPE>` — Tells Zanop OS What this file is.
+`!indef` — Importing a libarary, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-`<wml>` — Body of the Scriptsuft (Website Markup Language) app.
+`!indef is` — Importing a sub-library, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-`<head>` — Contains the elements that identify the documents charset, title and many more.
+`speak()` — Print text, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-`<body>` — Body of the app.
+`compile()` — Compiling the main.srp file, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-### Text 
+## Basic Variables
 
-`<h1> to <h6>` — Header level, Header 1 is the largest level while Header 6 is the smallest level.
+Now taking a step up, you can declare variables in two ways, these are:
 
-`<p>` — Paragraph.
+1. Live Variables
+2. Static Variables
 
-`<mp>` — Multiple Paragraphs
+But for the basics, we are going to use Static Variables, which are declared using `def(static) var{"name"} res{"John"}`.
 
-`<text>` — Similar to HTMLs `<span>` element.
-
-`<code>` — Shows monospace text.
-
-### Seperators
-
-`<breakline>` — Puts an empty space.
-
-`<line>` — Puts a line seperator.
-
-### Package Identifiers
-
-`<PackageIdentifer>` — Body of the Package Identifer.
-
-`<PackageAuthor>` — Author of the package.
-
-`<PackageTitle>` — Title of the Package.
-
-`<PackageDestination>` — Where the package will be installed.
-
-### Styling
-
-`<theme>` — Targets a specific element to turn into a specific color.
-
----
-
-
-## Making a Simple App
-To make a simple app in Scriptsuft, you need these tools:
-
-- VSCode or any IDE
-- NodeJS v20.19.2 and up.
-- Web Browser (since Scriptsuft is based off WML and can run in a browser)
-- Virtual Machine (optional if you want to run it in Zanop OS, however for beginners, Zanop OS recommends to do it in a browser.)
-
-1. Open VSCode or any IDE (This tutorial uses AntiX Linux, your Operating System depends. The IDE we will be using is Codium.)
-
-![Illustration 1](/assets/illustrations/illustration1.jpg)
-
-> *Note: You can choose between the start menu or the desktop.*
-
-2. Open a folder, name it anything you want.
-
-![Illustration 2](/assets/illustrations/illustration2.jpg)
-
-3. After creating your folder, create these folders and files that are needed for your first app.
+Using a variable (static):
 
 ```text
-your-project-name/
-├── .identifer/       
-│   ├── identify.toml
-│   └── info.toml
-├── .instructions/
-│   ├── compile.js 
-│   └── compile-instructions.yaml
-└── home.wml
+!indef system
+!indef func(print)
+!indef func(var)
+!indef is print
+!indef is def & res
+!indef is console
+
+def(static) var{"name"} res{"John"}
+
+speak var(name)
+compile()
 ```
 
-4. What should these files contain?
+**Explanation**
 
-Your `identify.toml` and `info.toml` should contain the following:
+`def` — Define, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-`identify.toml`
----
+`var` — The name of the static variable, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-```toml
-[info-file]
-info-file = "/.identifer/info.toml"
+`res` — Response of the variable, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-[config]
-# Optional, it will create it automatically 
-# within .identifier/
-config-src = "/.identifier/settings.toml"
+`speak var()` — Print the static variable, see [docs/dictionary/1.md](docs/dictionary/1.md)
+
+## Basic Loops
+
+To do Loops in Scriptsuft, you need to use the `while` loop function. You can do this using these:
+
+1. Controlled Loops
+2. Uncontrolled Loops (Be careful!)
+
+But for basics, we have to use controlled loops as uncontrolled loops may crash your system.
+
+Then enter this:
+
+```text
+!indef system
+!indef loop
+!indef func(print)
+!indef is print
+!indef is loop-limit
+!indef is console
+
+loop-limit(5)
+
+while loop is running:
+  if loop is limit to 5:
+    then loop speak("Hello World")
 ```
 
-`info.toml`
----
+**Explanation**
 
-```toml
-[author]
-author = "Your Name/Username Here"
+`loop-limit()` — The number of loops that are needed until it stops, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
-[title]
-title = "your-package-name"
-
-[description]
-description = "The description of your package."
-
-[type]
-# Default is GUI
-# or you can set it to
-# text.
-type = "GUI"
-```
-
-Then, your compile.js and compile-instructions.toml should contain:
-
-`compile.js`
----
-
-```javascript
-// Code will be made
-```
