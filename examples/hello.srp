@@ -1,0 +1,7 @@
+!indef system
+!indef func(print)
+!indef is print
+!indef is console
+
+speak("Hello World")
+compile()

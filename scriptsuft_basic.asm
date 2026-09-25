@@ -1,0 +1,51 @@
+; scriptsuft_basic.asm
+; x86-64 Linux NASM
+; Equivalent to the basic Scriptsuft examples from docs/part1/BASICS.md
+
+global _start
+
+section .data
+    hello db "Hello World", 10
+    hello_len equ $-hello
+
+    name db "John", 10
+    name_len equ $-name
+
+section .text
+
+_start:
+    ; speak("Hello World")
+    lea rsi, [rel hello]
+    mov rdx, hello_len
+    call print_line
+
+    ; def(static) var{"name"} res{"John"}
+    ; speak var(name)
+    lea rsi, [rel name]
+    mov rdx, name_len
+    call print_line
+
+    ; loop-limit(5)
+    mov rcx, 5
+
+.loop:
+    ; while loop is running:
+    lea rsi, [rel hello]
+    mov rdx, hello_len
+    call print_line
+
+    dec rcx
+    jnz .loop
+
+    ; exit
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+print_line:
+    ; rsi = pointer to string
+    ; rdx = length
+    mov rax, 1      ; sys_write
+    mov rdi, 1      ; stdout
+    syscall
+    ret

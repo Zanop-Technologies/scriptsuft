@@ -1,9 +1,3 @@
-Scriptsuft runtime bundle
-
-This bundle includes the interpreter plus examples from the project.
-
-Interpreter: scriptsuft.py
-
 #!/usr/bin/env python3
 """Scriptsuft interpreter/runtime.
 
@@ -432,4 +426,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

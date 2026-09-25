@@ -92,3 +92,15 @@ while loop is running:
 
 `loop-limit()` — The number of loops that are needed until it stops, see [docs/dictionary/1.md](docs/dictionary/1.md)
 
+`while` — See [docs/dictionary/1.md](docs/dictionary/1.md)
+
+`running` — The function that is running, see [docs/dictionary/1.md](docs/dictionary/1.md)
+
+`limit` — Limited processes of the function, see [docs/dictionary/1.md](docs/dictionary/1.md)
+
+## Additional Syntax
+
+`/* */` — Comments (Multi-line)
+`<!-- -->` — Comments (Mult-line, alternative)
+`//` — Comments (Oneline)
+`#` — Comments (oneline, alternative)

@@ -3,7 +3,7 @@ SHELL := /bin/sh
 all: build
 
 build:
-	./build.sh
+	sh ./build.sh
 
 clean:
 	rm -rf dist
