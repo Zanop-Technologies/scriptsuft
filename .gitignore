@@ -1,0 +1,19 @@
+# Build output
+/dist/
+*.bin
+*.out
+*.obj
+*.o
+
+# Editor/OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
