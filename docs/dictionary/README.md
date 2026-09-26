@@ -9,7 +9,7 @@ This directory serves as the language reference for Scriptsuft. The examples in 
 - [Entry 3: Variables and Data](3.md)
 - [Entry 4: Math and Expressions](4.md)
 - [Entry 5: Syntax Errors and Diagnostics](5.md)
-- [Linking and Identifiers](LINKING.md)
+- [Entry 6: Linking Files](6.md)
 
 ## Quick reference
 
