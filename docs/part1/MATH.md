@@ -6,4 +6,6 @@ You can do basic math without even doing an `!indef` because theres no `!indef m
 math class {
     problem: [2+2] // You can do Addition, Multiplication, Subtraction, Division
 }
+
+compile()
 ```
