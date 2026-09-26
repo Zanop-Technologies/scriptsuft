@@ -61,13 +61,15 @@ class ScriptSuftRuntime:
         text = text.strip()
         text = text.replace("(=)", "==")
         text = text.replace("(+)", "!=")
-        text = text.replace(" is not ", " != ")
-        text = text.replace(" is ", " == ")
-        text = text.replace(" and ", " and ")
-        text = text.replace(" or ", " or ")
-        text = text.replace(" not ", " not ")
-        text = text.replace(" but ", " and ")
+        text = re.sub(r"\b(is\s+not)\b", " != ", text, flags=re.I)
+        text = re.sub(r"\b(is)\b", " == ", text, flags=re.I)
+        text = re.sub(r"\bbut\b", " and ", text, flags=re.I)
+        text = re.sub(r"\band\b", " and ", text, flags=re.I)
+        text = re.sub(r"\bor\b", " or ", text, flags=re.I)
+        text = re.sub(r"\bnot\b", " not ", text, flags=re.I)
+        text = re.sub(r"\blimit\s+to\b", " == ", text, flags=re.I)
         text = text.replace("__app__", "app")
+        text = text.replace("__live__", "live")
         text = re.sub(r"\bvar\(([^)]+)\)", r"\1", text)
         text = re.sub(r'\btrue\b', 'True', text, flags=re.I)
         text = re.sub(r'\bfalse\b', 'False', text, flags=re.I)
@@ -112,8 +114,9 @@ class ScriptSuftRuntime:
         if not text:
             return ""
 
+        text = text.strip()
         if text.startswith("[") and text.endswith("]"):
-            text = text[1:-1]
+            text = text[1:-1].strip()
 
         if text in {"True", "False", "None"}:
             return ast.literal_eval(text)
@@ -134,22 +137,16 @@ class ScriptSuftRuntime:
 
         text = text.rstrip(":")
         text = text.rstrip("{")
-        text = text.rstrip()
+        text = text.strip()
 
-        if re.search(r"\bis\s+not\b", text, flags=re.I):
-            text = re.sub(r"\bis\s+not\b", " != ", text, flags=re.I)
-        if re.search(r"\bis\b", text, flags=re.I):
-            text = re.sub(r"\bis\b", " == ", text, flags=re.I)
-
-        if "(=)" in text:
-            text = text.replace("(=)", "==")
-        if "(+)" in text:
-            text = text.replace("(+)", "!=")
-
-        if " but " in text:
-            text = text.replace(" but ", " and ")
-
+        text = re.sub(r"\s+is\s+not\s+", " != ", text, flags=re.I)
+        text = re.sub(r"\s+is\s+", " == ", text, flags=re.I)
+        text = text.replace("(=)", "==")
+        text = text.replace("(+)", "!=")
+        text = re.sub(r"\bbut\b", " and ", text, flags=re.I)
+        text = re.sub(r"\blimit\s+to\b", " == ", text, flags=re.I)
         text = self.normalize_expression(text)
+
         result = self.evaluate_expression(text)
         return bool(result)
 
@@ -192,6 +189,15 @@ class ScriptSuftRuntime:
             self.loop_limit = int(self.evaluate_expression(match.group("value")))
             return ("loop-limit", self.loop_limit)
 
+        if stripped.startswith("math"):
+            match = re.match(r'^math\s+\w+\s*\{\s*(?P<body>.*)\}\s*$', stripped)
+            if match:
+                body = match.group("body")
+                if ":" in body:
+                    expr = body.split(":", 1)[1].strip()
+                    return ("math", self.evaluate_expression(expr))
+            return ("math", None)
+
         if stripped.startswith("speak"):
             match = re.match(r'^speak\s*(?:\((?P<expr>.*)\)|\s+var\((?P<var>[^)]+)\))\s*$', stripped)
             if match:
@@ -223,7 +229,7 @@ class ScriptSuftRuntime:
                 return ("case", (match.group("op"), match.group("stmt")))
 
         if stripped.startswith("if "):
-            match = re.match(r'^if\s+(?P<cond>.+?)\s*(?:\{|:)\s*$', stripped)
+            match = re.match(r'^if\s+(?P<cond>.+?)(?:\{|:|\s*\()\s*$', stripped)
             if match:
                 return ("if", match.group("cond"))
 
@@ -231,9 +237,12 @@ class ScriptSuftRuntime:
             return ("else", None)
 
         if stripped.startswith("while "):
-            match = re.match(r'^while\s+(?P<cond>.+?)\s*(?:\{|:)\s*$', stripped)
+            match = re.match(r'^while\s+(?P<cond>.+?)(?:\{|:|\s*\()\s*$', stripped)
             if match:
                 return ("while", match.group("cond"))
+
+        if stripped.startswith("then "):
+            return ("raw", stripped[5:].strip())
 
         match_assign = re.match(r'^(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<expr>.+)$', stripped)
         if match_assign:
@@ -244,8 +253,17 @@ class ScriptSuftRuntime:
 
         return ("raw", stripped)
 
-    def execute_statement(self, line: str) -> None:
-        parsed = self.parse_statement(line)
+    def execute_statement(self, line: str, lineno: int | None = None) -> None:
+        """Execute a single logical statement.
+
+        On syntax errors, raise SyntaxError with the line number when known.
+        """
+        try:
+            parsed = self.parse_statement(line)
+        except Exception as e:
+            ln = lineno or "?"
+            raise SyntaxError(f"Syntax error at line {ln}: {e}")
+
         if parsed is None:
             return
 
@@ -260,58 +278,73 @@ class ScriptSuftRuntime:
             self.set_var(name, value)
             return
         if kind == "speak":
-            self.emit(payload)
+            if payload is not None:
+                self.emit(payload)
             return
         if kind == "loop-limit":
             self.loop_limit = int(payload)
             return
+        if kind == "math":
+            if payload is not None:
+                self.emit(payload)
+            return
         if kind == "raw":
-            if line.startswith("then "):
-                body = line[5:].strip()
-                self.execute_statement(body)
+            target = payload if isinstance(payload, str) else ""
+            if target and target != line:
+                try:
+                    nested = self.parse_statement(target)
+                except Exception as e:
+                    ln = lineno or "?"
+                    raise SyntaxError(f"Syntax error at line {ln} (nested): {e}")
+                if nested is not None and nested[0] != "raw":
+                    # Execute nested statement using same reported line number
+                    self.execute_statement(target, lineno=lineno)
             return
 
     def execute_block(self, block_lines: Sequence[str]) -> None:
         i = 0
         while i < len(block_lines):
-            line = block_lines[i].strip()
-            if not line:
+            line = block_lines[i]
+            stripped = line.strip()
+            if not stripped:
                 i += 1
                 continue
 
-            if line.startswith("if "):
-                match = re.match(r'^if\s+(?P<cond>.+?)\s*(?:\{|:)\s*$', line)
+            if stripped.startswith("if "):
+                match = re.match(r'^if\s+(?P<cond>.+?)(?:\{|:|\s*\()\s*$', stripped)
                 if not match:
-                    raise ValueError(f"Unsupported if statement: {line}")
+                    raise SyntaxError(f"Unsupported if statement at line {i+1}: {stripped}")
                 cond = match.group("cond")
-                body, next_index = self.collect_block(block_lines, i + 1)
+                body, next_index = self.collect_block(block_lines, i + 1, self.indent_width(line))
                 i = next_index
                 if self.evaluate_condition(cond):
                     self.execute_block(body)
                 continue
 
-            if line.startswith("while "):
-                match = re.match(r'^while\s+(?P<cond>.+?)\s*(?:\{|:)\s*$', line)
+            if stripped.startswith("while "):
+                match = re.match(r'^while\s+(?P<cond>.+?)(?:\{|:|\s*\()\s*$', stripped)
                 if not match:
-                    raise ValueError(f"Unsupported while statement: {line}")
+                    raise SyntaxError(f"Unsupported while statement at line {i+1}: {stripped}")
                 cond = match.group("cond")
-                body, next_index = self.collect_block(block_lines, i + 1)
+                body, next_index = self.collect_block(block_lines, i + 1, self.indent_width(line))
                 i = next_index
+                limit = self.loop_limit if self.loop_limit is not None else 10000
                 while self.evaluate_condition(cond):
                     self.execute_block(body)
-                    if self.loop_limit is not None and self.loop_counter >= self.loop_limit:
-                        break
                     self.loop_counter += 1
+                    if self.loop_counter >= limit:
+                        break
+                self.loop_counter = 0
                 continue
 
-            if line.startswith("else"):
-                body, next_index = self.collect_block(block_lines, i + 1)
+            if stripped.startswith("else"):
+                body, next_index = self.collect_block(block_lines, i + 1, self.indent_width(line))
                 i = next_index
                 self.execute_block(body)
                 continue
 
-            if line.startswith("switch "):
-                match = re.match(r'^switch\s+(?P<expr>.+?)\s*\[\s*$', line)
+            if stripped.startswith("switch "):
+                match = re.match(r'^switch\s+(?P<expr>.+?)\s*\[\s*$', stripped)
                 if match:
                     expr = self.evaluate_expression(match.group("expr"))
                     i += 1
@@ -323,39 +356,41 @@ class ScriptSuftRuntime:
                         case_match = re.match(r'^case\s*\((?P<op>[^)]*)\)\s*(?P<stmt>.+)$', item)
                         if case_match:
                             if case_match.group("op").strip() == str(expr):
-                                self.execute_statement(case_match.group("stmt"))
+                                self.execute_statement(case_match.group("stmt"), lineno=i+1)
                             i += 1
                         else:
                             i += 1
                     continue
 
-            self.execute_statement(line)
+            self.execute_statement(stripped, lineno=i+1)
             i += 1
 
-    def collect_block(self, lines: Sequence[str], start_index: int) -> Tuple[List[str], int]:
+    @staticmethod
+    def indent_width(line: str) -> int:
+        return len(line) - len(line.lstrip(" "))
+
+    def collect_block(self, lines: Sequence[str], start_index: int, parent_indent: int) -> Tuple[List[str], int]:
         block: List[str] = []
         index = start_index
-        depth = 0
 
         while index < len(lines):
             current = lines[index]
             stripped = current.strip()
-            if stripped == "}":
-                if depth == 0:
-                    return block, index + 1
-                depth -= 1
+            if not stripped:
                 index += 1
                 continue
-            if stripped.endswith("{"):
-                depth += 1
-            if stripped.startswith("switch ") and "[" in stripped and not stripped.endswith("]"):
-                depth += 1
+            if stripped == "}":
+                return block, index + 1
+
+            current_indent = self.indent_width(current)
+            if current_indent <= parent_indent:
+                return block, index
             block.append(current)
             index += 1
 
-        if depth > 0:
-            raise ValueError("Unclosed block in Scriptsuft source")
-        return block, index
+        # If we fell off the end of the file while expecting an indented block,
+        # that's a syntax error (unclosed block). Report starting line for the block.
+        raise SyntaxError(f"Unclosed block starting at line {start_index+1}")
 
     def execute_source(self, source: str) -> List[str]:
         cleaned = self.strip_comments(source)
@@ -394,7 +429,11 @@ def build_bundle(root: Path, dist_dir: Path) -> None:
 def run_file(path: Path) -> int:
     source = path.read_text(encoding="utf-8")
     runtime = ScriptSuftRuntime()
-    runtime.execute_source(source)
+    try:
+        runtime.execute_source(source)
+    except SyntaxError as e:
+        print(f"SyntaxError: {e}", file=sys.stderr)
+        return 1
     return 0
 
 
