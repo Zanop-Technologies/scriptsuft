@@ -8,14 +8,16 @@ This directory serves as the language reference for Scriptsuft. The examples in 
 - [Entry 2: Control Flow](2.md)
 - [Entry 3: Variables and Data](3.md)
 - [Entry 4: Math and Expressions](4.md)
+- [Entry 5: Syntax Errors and Diagnostics](5.md)
 
 ## Quick reference
 
 - `!indef` — import a library or built-in module
 - `!indef is` — import a submodule or namespace
-- `speak(...)` — print text or variable values
+- `speak(...)` / `print(...)` — print text or variable values
 - `compile()` — finalize and run the current script
 - `def(static) var{"name"} res{"value"}` — create a static variable
+- `loop-limit(n)` — cap iterations for `while` loops
 - `while ... :` — repeat a block while a condition is true
 - `if ... :` — run a block when a condition is true
 - `else:` — fallback block for a false condition
