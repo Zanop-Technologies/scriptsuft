@@ -1,6 +1,6 @@
 # Database
 
-Scripsuft supports these databases, such as **json**, **MySQL**, **SQLite**, **MariaDB**, and **MongoDB**, they have their own `!indef` declarations. 
+Scripsuft supports these databases, such as **json**, only JSON is supported, other languages will be added  soon, they have their own `!indef` declarations. 
 
 ## Json Declaration
 
@@ -65,4 +65,23 @@ class jsmod {
     src("data/basketball.json")
     modify if UserInput receives(=)
 }
+
+compile()
 ```
+
+**Explanation**
+
+`!indef is random` — The sublibrary randoms `!indef is`, see the dictionary
+
+`recieve` — Receive the input, see the dictionary
+
+`subclass` — A classes sub-class, see the dictionary
+
+`generate` — Can only be used in `!indef is random`, see the dictionary
+
+`confirm()` — Confirm the action, see the dictionary
+
+`src()` — Source of the file, see the dictionary
+
+`modify` — Modify the file
+
